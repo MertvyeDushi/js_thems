@@ -1,6 +1,6 @@
-const nodeFetch = require('node-fetch')
+const fetch = require('node-fetch')
 
-const promise = nodeFetch('https://jsonplaceholder.typicode.com/todos/1')
+const promise = fetch('https://jsonplaceholder.typicode.com/todos/1')
 
 promise
 	.then( result => result.json() )
