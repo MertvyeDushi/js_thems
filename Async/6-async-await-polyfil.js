@@ -30,24 +30,65 @@ const fetch = require('node-fetch')
 
 const URL = 'https://jsonplaceholder.typicode.com/posts/1'
 
-function* generator (url) {
-	const response = yield fetch(url)
-	const data = yield response.json()
+/**
+ * yield – не только возвращает результат наружу,
+ * но и может передавать значение извне в генератор. Чтобы это сделать, нужно
+ * вызвать generator.next(arg) с аргументом. Этот аргумент становится результатом yield,
+ * т.е. в response будет записано то, что мы передали на строке (3).
+ */
 
-	console.log(data)
+function* generator (url) {
+	const response = yield fetch(url) // (1)
+	const data = yield response.json() // (2)
+
+	return data
 }
 
 const async = (generatorObject, url) => {
+	/**
+	 * Когда такая функция вызвана generatorObject(url), она не выполняет свой код.
+	 * Вместо этого она возвращает специальный объект, так называемый «генератор»,
+	 * для управления её выполнением.
+	 */
 	const generator = generatorObject(url)
 	
-	const next = value => {
+	const handle = value => {
+		/**
+		 * При вызове next() запускает выполнение кода внутри генератора до ближайшей
+		 * инструкции yield. По достижении yield выполнение функции приостанавливается,
+		 * а соответствующее значение – возвращается во внешний код. Результатом метода
+		 * next() всегда является объект с двумя свойствами:
+		 * 
+		 * - value - значение из yield (в нашем случае Промис);
+		 * - done - статус выполнения (будет всегда false, если возвращать ч/з yield).
+		 */
+
 		const result = generator.next(value)
+		// result: { value: Promise { <pending> }, done: false }
 		
-		if (result.done) return result.value
-		else result.value.then(next)
+		/**
+		 * Разберемся, что тут происходит.
+		 * 
+		 * У объекта генератора вызывается метод next(), value === underfined.
+		 * На строке (1) генерируется запрос и возвращается Промис. Т.к. стоит ключевое
+		 * слово yield, то в этот же момент Промис возвращается во внешнюю функцию,
+		 * где происходит ожидание его исполнения, затем запускается снова наша функция
+		 * next, в параметрах которой передан Респонс, полученный в Промисе.
+		 * Далее на объекте Генератора снова запускается метод next(), value === Респонс.
+		 * Выполнения кода начинается уже не с (1) строки, а со (2). Дальше всё понятно.
+		 */
+
+		if (result.done) return Promise.resolve(result.value)
+
+		return Promise.resolve(result.value).then( response => handle(response) ) // (3)
 	}
 
-	next()
+	return handle()
 }
 
-console.log(async(generator, URL))
+const result = async(generator, URL)
+
+console.log(result)
+// result.then(console.log)
+// По-сути, async всегда возвращает Промис, но надо избивиться от then. Хз как.
+// Надо сделать так, чтобы возвращался сразу результат без then.
