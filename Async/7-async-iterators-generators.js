@@ -2,9 +2,9 @@
 
 const fetch = require('node-fetch');
 
-const REPO = 'javascript-tutorial/en.javascript.info';
+const REPO = 'lmiller1990/vue-testing-handbook';
 const URL = `https://api.github.com/repos/${REPO}/commits`;
-const REGEX = '/<(.*?)>; rel="next"/';
+const REGEX = /<(.*?)>; rel="next"/;
 
 const data = { URL, REGEX };
 
@@ -12,11 +12,8 @@ const data = { URL, REGEX };
   async function getCommitsNumber (url) {
     const commits = []
 
-    let i = 0
-
     for await (let commit of fetchCommits(url)) {
       commits.push(commit)
-      if (i >= 100) { i++; break; }
     }
 
     return commits
@@ -40,8 +37,7 @@ const data = { URL, REGEX };
   }
 
   const result = await getCommitsNumber(URL)
-  const authors = new Set(result.map( v => v.author.login))
 
-  console.log(authors)
+  result.forEach( (v, i) => console.log(i, v.sha) )
   
 })(data);
