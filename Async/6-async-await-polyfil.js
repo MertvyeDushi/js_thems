@@ -88,7 +88,5 @@ const async = (generatorObject, url) => {
 
 const result = async(generator, URL)
 
-console.log(result)
-// result.then(console.log)
-// По-сути, async всегда возвращает Промис, но надо избивиться от then. Хз как.
-// Надо сделать так, чтобы возвращался сразу результат без then.
+// async всегда возвращает Промис:
+result.then(console.log)
